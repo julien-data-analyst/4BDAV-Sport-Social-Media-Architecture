@@ -1,0 +1,87 @@
+services:
+  grafana:
+    build: 
+        context: ./grafana
+    container_name: grafana-dashboard-sensor-monitoring
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  marimo:
+    build:
+      context: ./marimo-dev
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION}
+    container_name: marimo-dev
+    command: marimo edit --no-token --host 0.0.0.0 -p 8080
+    env_file:
+      - .env
+    volumes:
+      - ./marimo-dev/scripts:/code
+    working_dir: /code
+    ports:
+      - "8080:8080"
+    stdin_open: true
+    tty: true
+
+  postgres:
+    build: 
+      context: ./postgresql
+    container_name: postgres_social_media
+    environment:
+      POSTGRES_DB: social_media_sports
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5532:5532"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql/scripts/:/docker-entrypoint-initdb.d/
+
+  redis:
+    build: 
+      context: ./redis
+    container_name: redis_social_media
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  influxdb:
+    build: ./influxdb
+    container_name: influxdb_sensors_activity
+    restart: always
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
+      DOCKER_INFLUXDB_INIT_ORG: sports_org
+      DOCKER_INFLUXDB_INIT_BUCKET: sports_metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
+
+  python:
+    build:
+      context: ./python-dev
+    container_name: python-dev
+    command: 
+    env_file:
+      - .env
+    volumes:
+      - ./python-dev/scripts:/code
+    working_dir: /code
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  influxdb_data:
+  grafana-data:

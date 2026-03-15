@@ -232,8 +232,8 @@ CREATE TABLE IF NOT EXISTS "Sensors_Metrics" (
 
 
 
-ALTER TABLE "Activity"
-ADD FOREIGN KEY("id") REFERENCES "Post"("id_activity")
+ALTER TABLE "Post"
+ADD FOREIGN KEY("id_activity") REFERENCES "Activity"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Activity_Aggregation_Metrics"
 ADD FOREIGN KEY("id_activity") REFERENCES "Activity"("id")
@@ -259,11 +259,11 @@ ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Activity"
 ADD FOREIGN KEY("id_user_sport") REFERENCES "User_Sports"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "User"
-ADD FOREIGN KEY("id") REFERENCES "User_Sports"("user_id")
+ALTER TABLE "User_Sports"
+ADD FOREIGN KEY("user_id") REFERENCES "User"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Sport"
-ADD FOREIGN KEY("id") REFERENCES "User_Sports"("sport_id")
+ALTER TABLE "User_Sports"
+ADD FOREIGN KEY("sport_id") REFERENCES "Sport"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Commentary"
 ADD FOREIGN KEY("id_commentary_response") REFERENCES "Commentary"("id")
@@ -280,29 +280,29 @@ ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Sports_Metrics"
 ADD FOREIGN KEY("sport_id") REFERENCES "Sport"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Apparatus"
-ADD FOREIGN KEY("id") REFERENCES "Sensors_Apparatus"("apparatus_id")
+ALTER TABLE "Sensors_Apparatus"
+ADD FOREIGN KEY("apparatus_id") REFERENCES "Apparatus"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Sensor"
-ADD FOREIGN KEY("id") REFERENCES "Sensors_Apparatus"("sensor_id")
+ALTER TABLE "Sensors_Apparatus"
+ADD FOREIGN KEY("sensor_id") REFERENCES "Sensor"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Activity"
-ADD FOREIGN KEY("id") REFERENCES "Sensors_Activities"("activity_id")
+ALTER TABLE "Sensors_Activities"
+ADD FOREIGN KEY("activity_id") REFERENCES "Activity"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Sensor"
-ADD FOREIGN KEY("id") REFERENCES "Sensors_Activities"("sensor_id")
+ALTER TABLE "Sensors_Activities"
+ADD FOREIGN KEY("sensor_id") REFERENCES "Sensor"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Activity_Aggregation_Metrics"
 ADD FOREIGN KEY("id_aggregation_metric") REFERENCES "Aggregation_Metric"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Aggregation"
-ADD FOREIGN KEY("id") REFERENCES "Aggregation_Metric"("id_aggregation")
+ALTER TABLE "Aggregation_Metric"
+ADD FOREIGN KEY("id_aggregation") REFERENCES "Aggregation"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Metric"
-ADD FOREIGN KEY("id") REFERENCES "Aggregation_Metric"("id_metric")
+ALTER TABLE "Aggregation_Metric"
+ADD FOREIGN KEY("id_metric") REFERENCES "Metric"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE "Sensor"
-ADD FOREIGN KEY("id") REFERENCES "Sensors_Metrics"("id_sensor")
+ALTER TABLE "Sensors_Metrics"
+ADD FOREIGN KEY("id_sensor") REFERENCES "Sensor"("id")
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 ALTER TABLE "Sensors_Metrics"
 ADD FOREIGN KEY("id_metric") REFERENCES "Metric"("id")
