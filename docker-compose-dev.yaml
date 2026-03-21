@@ -21,7 +21,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./marimo-dev/scripts:/code
+      - ./marimo-dev/scripts:/code/scripts
     working_dir: /code
     ports:
       - "8080:8080"
@@ -37,10 +37,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5532:5532"
+      - "5532:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgresql/scripts/:/docker-entrypoint-initdb.d/
+      - ./postgresql/scripts/initdb/:/docker-entrypoint-initdb.d/
+      - ./postgresql/scripts/inserts/:/inserts/
 
   redis:
     build: 
@@ -54,7 +55,6 @@ services:
   influxdb:
     build: ./influxdb
     container_name: influxdb_sensors_activity
-    restart: always
     ports:
       - "8086:8086"
     volumes:

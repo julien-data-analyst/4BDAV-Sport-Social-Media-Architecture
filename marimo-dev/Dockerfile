@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Installer uv
 COPY --from=ghcr.io/astral-sh/uv:0.4.20 /uv /bin/uv
 ENV UV_SYSTEM_PYTHON=1
+ENV PATH="/code/.venv/bin:$PATH"
 
 # Créer le dossier de travail
 WORKDIR /code
@@ -19,6 +20,6 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync
 
 # Copier le code
-COPY ./scripts/ /code/
+COPY ./scripts/ /code/scripts
 
 CMD ["marimo", "edit", "--no-token", "--host", "0.0.0.0", "-p", "8080"]

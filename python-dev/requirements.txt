@@ -1,5 +1,5 @@
-marimo
 pandas
 psycopg2-binary
 redis
 influxdb
+Faker

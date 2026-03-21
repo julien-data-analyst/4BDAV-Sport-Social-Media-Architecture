@@ -7,6 +7,5 @@ ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=postgres
 
 # Copier le script SQL d'initialisation
-COPY ./scripts/create_bdd_social_media_sports.sql /docker-entrypoint-initdb.d/
-
+COPY ./scripts/initdb/create_bdd_social_media_sports.sql /docker-entrypoint-initdb.d/
 # PostgreSQL exécutera automatiquement ce script au premier lancement
