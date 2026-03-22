@@ -18,8 +18,8 @@ while true; do
 
   influx backup /backup/$DATE \
     --host http://influxdb_sensors_activity:8086 \
-    --token my-super-token \
-    --org sports_org
+    --token $INFLUX_TOKEN \
+    --org $INFLUX_ORG
 
   # Message de réussite
   echo "Backup created succesfully : $DATE"

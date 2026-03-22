@@ -9,10 +9,8 @@ services:
       - ./grafana/datasources/:/etc/grafana/provisioning/datasources/
       - ./grafana/dashboard/:/etc/grafana/provisioning/dashboards/
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-
-
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
 
   marimo:
     build:
@@ -51,13 +49,16 @@ services:
     build: 
       context: ./redis
     container_name: redis_social_media
+    env_file:
+      - .env
     ports:
       - "6379:6379"
-    command: redis-server /usr/local/etc/redis/redis.conf
+    entrypoint: ["sh", "/entrypoint.sh"]
     volumes:
-      - ./redis/config/redis.conf:/usr/local/etc/redis/redis.conf
       - ./redis/data/:/test_data/
       - ./redis/backup/data/:/data/
+      - ./redis/config/redis.conf.template:/redis.conf.template
+      - ./redis/entrypoint/entrypoint.sh:/entrypoint.sh
 
   influxdb:
     build: ./influxdb
@@ -70,12 +71,12 @@ services:
       - ./influxdb/config/config.toml:/etc/influxdb/config.toml
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
-      DOCKER_INFLUXDB_INIT_ORG: sports_org
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
       DOCKER_INFLUXDB_INIT_RETENTION: 168h 
-      DOCKER_INFLUXDB_INIT_BUCKET: sports_metrics
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
 
   python:
     build:
@@ -92,6 +93,8 @@ services:
 
   postgres-backup:
     image: postgres:16
+    env_file:
+      - .env
     depends_on:
       - postgres
     volumes:
@@ -103,6 +106,8 @@ services:
 
   redis-backup:
     image: redis:7
+    env_file:
+      - .env
     depends_on:
       - redis
     volumes:
@@ -113,6 +118,8 @@ services:
 
   influx-backup:
     image: influxdb:2.7
+    env_file:
+      - .env
     depends_on:
       - influxdb
     volumes:

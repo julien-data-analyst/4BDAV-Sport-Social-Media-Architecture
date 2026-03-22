@@ -5,7 +5,7 @@ while true; do
   echo "Waiting database to be initialized"
 
   # Test de santé du bdd
-  until pg_isready -h postgres -U postgres; do
+  until pg_isready -h $POSTGRES_HOST -U $POSTGRES_USER; do
     echo "Database not ready, retry in 2s"
     sleep 2
   done
@@ -14,7 +14,7 @@ while true; do
   DATE=$(date +%Y%m%d_%H%M%S)
 
   # connexion au postgre et création backup
-  pg_dump -h postgres_social_media -U postgres social_media_sports \
+  pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER $POSTGRES_DB \
   > /backup/postgres_$DATE.sql
 
   # rotation (7 jours)
