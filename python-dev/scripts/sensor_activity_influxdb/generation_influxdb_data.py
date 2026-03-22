@@ -1,3 +1,7 @@
+import random
+import datetime
+import psycopg2
+
 def generation_influxdb_data(nb_act=100, nb_mesures=100, max_duree_session_minutes=180 ):
     """
     Génère un fichier de données TXT pour la base de données influxdb afin de simuler des données d'activités
@@ -31,6 +35,8 @@ def generation_influxdb_data(nb_act=100, nb_mesures=100, max_duree_session_minut
         conn.rollback()
         raise ValueError(f" Erreur au niveau de la requête : {e}")
             
+    id_users_sports_sensors_metrics = cursor.fetchall()
+    conn.close()
 
     for act in range (1, nb_act+1):
         ###############

@@ -5,11 +5,14 @@ services:
     container_name: grafana-dashboard-sensor-monitoring
     ports:
       - "3001:3000"
+    volumes:
+      - ./grafana/datasources/:/etc/grafana/provisioning/datasources/
+      - ./grafana/dashboard/:/etc/grafana/provisioning/dashboards/
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-data:/var/lib/grafana
+
+
 
   marimo:
     build:
@@ -38,19 +41,23 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5532:5432"
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgresql/scripts/initdb/:/docker-entrypoint-initdb.d/
       - ./postgresql/scripts/inserts/:/inserts/
-
+      - ./postgresql/scripts/config/:/etc/postgresql/
   redis:
     build: 
       context: ./redis
     container_name: redis_social_media
     ports:
       - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - redis_data:/data
+      - ./redis/config/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/data/:/test_data/
+      - ./redis/backup/data/:/data/
 
   influxdb:
     build: ./influxdb
@@ -58,12 +65,15 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - influxdb_data:/var/lib/influxdb2
+      - ./influxdb/sensor:/data/sensor
+      - ./influxdb/monitoring:/data/monitoring
+      - ./influxdb/config/config.toml:/etc/influxdb/config.toml
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: admin
       DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
       DOCKER_INFLUXDB_INIT_ORG: sports_org
+      DOCKER_INFLUXDB_INIT_RETENTION: 168h 
       DOCKER_INFLUXDB_INIT_BUCKET: sports_metrics
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-token
 
@@ -79,6 +89,49 @@ services:
     working_dir: /code
     stdin_open: true
     tty: true
+
+  postgres-backup:
+    image: postgres:16
+    depends_on:
+      - postgres
+    volumes:
+      - ./postgresql/scripts/backup/data/:/backup/
+      - ./postgresql/scripts/backup/backup.sh:/backup.sh
+    environment:
+      PGPASSWORD: postgres
+    entrypoint: ["bash", "./backup.sh"]
+
+  redis-backup:
+    image: redis:7
+    depends_on:
+      - redis
+    volumes:
+      - ./redis/backup/data/:/backup_data/
+      - ./redis/backup/backup.sh:/backup.sh
+
+    command: ["bash", "../backup.sh"]
+
+  influx-backup:
+    image: influxdb:2.7
+    depends_on:
+      - influxdb
+    volumes:
+      - ./influxdb/backup/influx:/backup
+      - ./influxdb/backup/backup.sh:/backup.sh
+    environment:
+      INFLUX_TOKEN: my-super-token
+    entrypoint: ["bash", "./backup.sh"]
+
+  grafana-backup:
+    image: alpine
+    container_name: grafana-backup
+    depends_on:
+      - grafana
+    volumes:
+    - ./grafana/grafana-data:/var/lib/grafana
+    - ./grafana/backup/data:/backup
+    - ./grafana/backup/backup.sh:/backup.sh
+    entrypoint: ["sh", "/backup.sh"]
 
 volumes:
   postgres_data:

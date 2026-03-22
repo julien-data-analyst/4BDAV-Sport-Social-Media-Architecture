@@ -1,8 +1,7 @@
 # Image officielle Redis
 FROM redis:7
 
-# Dossier de travail (optionnel)
-WORKDIR /data
-
 # Commande de lancement de Redis
-CMD ["redis-server", "--appendonly", "yes"]
+COPY ./config/redis.conf /usr/local/etc/redis/redis.conf
+
+CMD [ "redis-server", "/usr/local/etc/redis/redis.conf", "--appendonly", "yes" ]

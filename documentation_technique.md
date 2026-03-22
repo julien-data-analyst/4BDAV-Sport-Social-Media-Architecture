@@ -111,16 +111,6 @@ Vous l'aurez donc peut-être compris, mais **Python** va nous servir à gérer l
     <i>Figure 6 : logo Python</i>
 </p>
 
-### FastAPI
-
-Pour bien sûr gérer ces données facilement, il faudra créer des API et c'est là qu'intervient une librairie très populaire pour ça. Elle se nomme **FastAPI**. Cette API nous permet de facilement créer les différents APIs afin de gérer les données côtés Redis et InfluxDB via des requêtes HTTP. Ces requêtes enverront des données en JSON qui seront traiter sous Python pour au final les insérer dans la base de données relationnelles PostgreSQL.
-
-<p style="text-align: center">
-    <img src="img/FastAPI_logo.svg.png" width="40%">
-    <br />
-    <i>Figure 7 : logo FastAPI</i>
-</p>
-
 # Architecture  et schémas des bases de données
 
 Maintenant que nous avons fait la présentation de ces technologies, parlons maintenant des schémas de l'architecture. Ces schémas nous permettra d'expliquer d'une part les bases de données mais aussi comment elles vont communiquer entre elles. On commencera d'abord par l'architecture globale afin de vous montrer comment ça se passe. À la suite de ça, on ira plus en détails sur la partie *Activité* où on expliquera comment on va gérer les données des capteurs. Ensuite, on abordera le côté *réseaux sociaux* avec la gestion des posts, follows, commentaires et likes. Pour finir, on parlera du *monitoring* sur comment InfluxDB va intervenir sur les données de maintenance du système.
@@ -501,13 +491,13 @@ erDiagram
 	Sports_Metrics }o--|| Sport : references
 	Apparatus ||--o{ Sensors_Apparatus : references
 	Sensor ||--o{ Sensors_Apparatus : references
-	Activity ||--o{ Sensors_Activities : references
-	Sensor ||--o{ Sensors_Activities : references
+	Activity ||--o{ Sensors_Metrics_Activities : references
 	Activity_Aggregation_Metrics }o--|| Aggregation_Metric : references
 	Aggregation ||--o{ Aggregation_Metric : references
 	Metric ||--o{ Aggregation_Metric : references
 	Sensor ||--o{ Sensors_Metrics : references
 	Sensors_Metrics }o--|| Metric : references
+	Sensors_Metrics_Activities }o--|| Sensors_Metrics : references
 
 	User {
 		TEXT id
@@ -636,10 +626,10 @@ erDiagram
 		TIMESTAMP upload_date
 	}
 
-	Sensors_Activities {
+	Sensors_Metrics_Activities {
 		TEXT id
 		TEXT activity_id
-		TEXT sensor_id
+		TEXT sensor_metric_id
 		TIMESTAMP upload_date
 	}
 
@@ -666,20 +656,47 @@ erDiagram
 ```
 
 # Procédures d'administrations 
+Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
 ## PostgreSQL
 
+
+| Table                          | SENSOR | SOCIAL_MEDIA_USER | DATA_ANALYST | ANALYSE_PERFORMANCE | MAINTENEUR |
+|--------------------------------|--------|-------------------|--------------|----------------------|-----------|
+| Activity                       | W      | R                 | R            | R                    | R/W/M/D |
+| Activity_Aggregations_Metrics  | W      | -                 | R            | R                    | R/W/M/D |
+| Sensors_Metrics_Activities     | W      | -                 | R            | R                    | R/W/M/D |
+| Aggregation                    | R      | -                 | R            | R                    | R/W/M/D |
+| Aggregation_Metric             | R      | -                 | R            | R                    | R/W/M/D |
+| Apparatus                      | R      | -                 | R            | R                    | R/W/M/D |
+| Sensor                         | R      | -                 | R            | R                    | R/W/M/D |
+| Sensors_Apparatus              | R      | -                 | R            | R                    | R/W/M/D |
+| Sensors_Metrics                | R      | -                 | R            | R                    | R/W/M/D |
+| Sport                          | R      | R                 | R            | R                    | R/W/M/D |
+| Sports_Metrics                 | R      | -                 | R            | R                    | R/W/M/D |
+| User                           | R      | R                 | R            | R                    | R/W/M/D |
+| User_Sports                    | R      | R/W/M/D           | R            | R                    | R/W/M/D |
+| Follow         | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+| Media          | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+| Post           | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+| Professionnal  | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+| Commentary     | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+| Like           | -      | R/W/M/D           | R            | -                    | R/W/M/D |
+
+
 ## InfluxDB
 
+
 ## Redis
+
 
 # Plan de sauvegarde et de reprise d'activité
 
 ## PostgreSQL
 
-## InfluxDB
-
 ## Redis
+
+## InfluxDB
 
 # Conclusion
 

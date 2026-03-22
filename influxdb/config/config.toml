@@ -1,0 +1,8 @@
+[http]
+  bind-address = ":8086"
+
+[storage]
+  engine-path = "/var/lib/influxdb2"
+
+[logging]
+  level = "info"

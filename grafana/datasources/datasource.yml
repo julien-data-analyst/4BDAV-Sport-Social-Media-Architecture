@@ -1,0 +1,25 @@
+apiVersion: 1
+
+datasources:
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: social_media_sports
+    user: postgres
+    secureJsonData:
+      password: postgres
+    isDefault: true
+    jsonData:
+      sslmode: disable
+
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb_sensors_activity:8086
+    jsonData:
+      version: Flux
+      organization: sports_org
+      defaultBucket: sports_metrics
+    secureJsonData:
+      token: my-super-token

@@ -2,5 +2,5 @@ marimo
 pandas
 psycopg2-binary
 redis
-influxdb
+influxdb-client
 Faker
