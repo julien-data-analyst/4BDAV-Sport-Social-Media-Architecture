@@ -27,7 +27,7 @@ while true; do
   sleep 3
 
   # déplacer le backup redis
-  if cp /data/dump.rdb /backup_data/redis_$DATE.rdb; then
+  if cp /backup_data/dump.rdb /backup_data/redis_$DATE.rdb; then
     # Mettre un message de confirmation du backup
     echo "Redis backup created : redis_$DATE.rdb"
   else

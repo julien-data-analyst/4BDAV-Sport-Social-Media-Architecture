@@ -1,4 +1,6 @@
 services:
+
+  # 1ère partie : création des services principaux
   grafana:
     build: 
         context: ./grafana
@@ -45,6 +47,7 @@ services:
       - ./postgresql/scripts/initdb/:/docker-entrypoint-initdb.d/
       - ./postgresql/scripts/inserts/:/inserts/
       - ./postgresql/scripts/config/:/etc/postgresql/
+  
   redis:
     build: 
       context: ./redis
@@ -91,6 +94,7 @@ services:
     stdin_open: true
     tty: true
 
+  # 2ème partie : création des backups 
   postgres-backup:
     image: postgres:16
     env_file:
@@ -139,6 +143,17 @@ services:
     - ./grafana/backup/data:/backup
     - ./grafana/backup/backup.sh:/backup.sh
     entrypoint: ["sh", "/backup.sh"]
+
+  # 3ème partie : Création des tokens de lecture et d'écriture seulement sur InfluxDB
+  influx-init:
+    image: influxdb:2.7
+    env_file:
+      - .env
+    depends_on:
+      - influxdb
+    volumes:
+      - ./influxdb/initdb/token_creation.sh:/token_creation.sh
+    entrypoint: ["sh", "/token_creation.sh"]
 
 volumes:
   postgres_data:
