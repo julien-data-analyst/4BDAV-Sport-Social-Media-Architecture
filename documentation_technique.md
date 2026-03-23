@@ -1,7 +1,7 @@
 # Sujet : Plateforme de gestion d'un réseau social pour sportifs
 ## Auteur : Julien RENOULT
 ## Promo : PGE4 Spécialité Data
-### *Date : 13/03/2026-15/03/2026*
+### *Date : 13/03/2026-23/03/2026*
 
 # Introduction
 
@@ -657,8 +657,22 @@ erDiagram
 
 # Procédures d'administrations 
 
+Les procédures d'administrations sont une part importante pour la sécurité et la confidentialité des données. 
+Nous parlerons d'abord des **rôles** pour PostgreSQL, ensuite des **tokens** d'InfluxDB et pour finir les **users** Redis.
+
+
 ## PostgreSQL
-Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
+
+Pour ce qui est des rôles sous PostgreSQL, nous avons créé cinq rôles principales pour une bonne gestion de la base de données :
+- **SENSOR** : rôle spécifique pour les capteurs afin de lire les données nécessaires à l'écriture de l'activité
+- **SOCIAL_MEDIA_USER** : rôle spécifique pour le côté réseau social afin de lire les données concernant uniquement de l'activité, l'utilisateur 
+et pour l'écriture des posts, médias, professionnel, commentaires et likes
+- **DATA_ANALYST** : rôle pour seulement la lecture des données concernant les activités pour l'analyse de performance
+- **MAINTENEUR** : rôle pour surveiller et appliquer des actions urgentes si nécessaires dans les données
+
+Vous trouverez le tableau ci-dessous pour la description des rôles et ce qui est possible de faire avec eux.
+
+**Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer**
 
 | Table                          | SENSOR | SOCIAL_MEDIA_USER | DATA_ANALYST | ANALYSE_PERFORMANCE | MAINTENEUR |
 |--------------------------------|--------|-------------------|--------------|----------------------|-----------|
@@ -684,29 +698,74 @@ Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
 
 ## InfluxDB
-Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
-Expliquer les trois tokens
+Pour ce qui est d'InfluxDB, la gestion des autorisations se faits à travers les tokens. Pour ce faire, deux tokens sont créées.
+Une pour la lecture des données sur le bucket (read-only) et de l'autre pour l'écriture des données sur le bucket (write-only).
+De cette façon, nous respectons le principe de moindre privilèges en séparant l'écriture et la lecture en deux tokens.
+Un dernier token est créé pour les admins afin de gérer la base de données.
 
 ## Redis
-Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
-Expliquer les quatre utilisateurs
-user ${REDIS_USER_ADMIN} on >${REDIS_PASSWORD_ADMIN} ~* +@all
-user ${REDIS_USER_SM} on >${REDIS_PASSWORD_SM} ~posts:* ~likes:* ~follow:* ~commentary:* +GET +MGET +EXISTS +SET +DEL +INCR +PUBLISH +SUBSCRIBE
-user ${REDIS_USER_SENSOR} on >${REDIS_PASSWORD_SENSOR} ~activity_id:* +GET +MGET +SET +DEL
-user ${REDIS_WORKER} on >${REDIS_PASSWORD_WORKER} allkeys allcommands
+Pour ce qui est de Redis, la gestion des droits vont se faire via quatre utilisateurs dont l'administrateur, 
+l'utilisateur du réseau social, le capteur pour le cache et le worker pour les différents workers.
+Vous trouverez un tableau ci-dessous expliquant plus en détails les autorisations qu'ont ces utilisateurs.
+
+**Légende : ALL - Toutes les commandes, GET/MGET - Lecture, EXISTS - Vérifier existence, DEL - Effacer, INCR - Incrémenter valeur numérique, PUBLISH/SUBSCRIBE - Abonnement Désabonnement**
+
+| Table                          | ADMIN  | SOCIAL_MEDIA_USER | ACTIVITY_SENSOR_CACHE | WORKER |
+|--------------------------------|--------|-------------------|--------------|----------------------|
+| Post                           | ALL    | GET/MGET/EXISTS/SET/DEL/INCR/PUBLISH/SUBSCRIBE | -                           | ALL                    |
+| Commentary                     | ALL    | GET/MGET/EXISTS/SET/DEL/INCR/PUBLISH/SUBSCRIBE | -                           | ALL                    |
+| Like                           | ALL    | GET/MGET/EXISTS/SET/DEL/INCR/PUBLISH/SUBSCRIBE | -                           | ALL                    |
+| Follow                         | ALL    | GET/MGET/EXISTS/SET/DEL/INCR/PUBLISH/SUBSCRIBE | -                           | ALL                    |
+| Activity                       | ALL    | -                                              |  GET/MGET/SET/DEL           | ALL            |
+| Media                          | ALL    | GET/MGET/EXISTS/SET/DEL/INCR/PUBLISH/SUBSCRIBE | -                           | ALL                    |
+
 
 # Plan de sauvegarde et de reprise d'activité
 
+Dans le cas d'un scénario engageant une panne au sein du système, 
+nous devons prioriser la restauration de la base de données **PostgreSQL**. 
+C'est cette base qui est source de vérité tant pour les activité et les posts du réseau social.
+
+Ensuite, on passera sur **Redis** en deuxième pour la mise en disponibilité de l'application le plus rapidement possible.
+
+Pour finir, **l'influxDB et Grafana** seront remises en service dès que les autres bases de données seront mises en service.
+Ce que vous trouverez ci-dessous est le détail des backup créés pour chaque base et la politique de rétention associée.
+
 ## PostgreSQL
-backup créé et rotation
+
+La base de données **PostgreSQL** a un backup généré tous les 2 jours via pg_dump.
+Elle est gardée pendant 7 jours et sera supprimée ensuite pour limiter le volume de stockage. 
+
 ## Redis
-backup créé et rotation
+
+La base de données **Redis** a un backup généré tous les 24 heures.
+Le backup est gardé pendant 2 jours et sera supprimée ensuite pour ne garder que les données très récentes.
+On est sur des données très volatiles ce qui n'offre pas d'intérêt de le garder longtemps.
+
 ## InfluxDB
-backup créé et rotation
+
+La base de données **InfluxDB** a un backup généré tous les 24 heures.
+Le backup est gardé pendant 3 jours afin de garder les activités réalisées récentes si les bases de données sont en pannes.
+On est sur des données aussi très volatiles donc on ne doit pas les garder pour longtemps.
+
 ## Grafana
-backup créé et rotation
 
-# Conclusion
+Pour **Grafana**, un backup sera généré tous les 24 heures afin de surveiller les modifications Grafana.
+Le backup est gardé pendant 7 jours afin d'avoir les modifications sur chaque versions et de les utiliser si un bug apparaît.
 
+# La stratégie de mise à l'échelle de votre solution
+
+Pour mettre en place cette solution qui n'est encore que dans le stade de développement, 
+nous proposons plusieurs étapes afin de bien gérer cette solution :
+- **création des workers pour l'intéraction avec les bases de données**
+- **création des scripts pour l'utilisation du backup créé**
+- **création des dashboards pour la performance et le monitoring**
+- **mise en production de cette architecture**
+
+L'objectif de cette première version
+afin de montrer le potentiel de cette architecture et de son efficacité.
+
+Bien sûr de nombreux tests devront être menés afin d'assurer l'efficacité 
+et la résistance des bases de données fâce aux gros flux de données.

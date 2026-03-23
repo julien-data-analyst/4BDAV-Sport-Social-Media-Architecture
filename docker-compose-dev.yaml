@@ -87,20 +87,6 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
 
-  # Service pour exécuter les scripts de génération de données et insertion dans les bdd correspondantes
-  python:
-    build:
-      context: ./python-dev
-    container_name: python-dev
-    command: 
-    env_file:
-      - .env
-    volumes:
-      - ./python-dev/scripts:/code
-    working_dir: /code
-    stdin_open: true
-    tty: true
-
   # 2ème partie : création des backups 
 
   # Création du backup sous SQL
