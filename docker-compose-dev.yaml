@@ -1,6 +1,8 @@
 services:
 
   # 1ère partie : création des services principaux
+
+  # Service pour la création de dashboard
   grafana:
     build: 
         context: ./grafana
@@ -8,12 +10,13 @@ services:
     ports:
       - "3001:3000"
     volumes:
-      - ./grafana/datasources/:/etc/grafana/provisioning/datasources/
-      - ./grafana/dashboard/:/etc/grafana/provisioning/dashboards/
+      - ./grafana/datasources/:/etc/grafana/provisioning/datasources/ # Insertion des sources de données et leurs connexions
+      - ./grafana/dashboard/:/etc/grafana/provisioning/dashboards/ # Insertion des dashboards via l'export JSON
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
 
+  # Service pour le développement des scripts avec Marimo
   marimo:
     build:
       context: ./marimo-dev
@@ -31,6 +34,7 @@ services:
     stdin_open: true
     tty: true
 
+  # Service pour la création de la base de données SQL
   postgres:
     build: 
       context: ./postgresql
@@ -48,6 +52,7 @@ services:
       - ./postgresql/scripts/inserts/:/inserts/
       - ./postgresql/scripts/config/:/etc/postgresql/
   
+  # Service pour la création de la base de données Redis
   redis:
     build: 
       context: ./redis
@@ -63,6 +68,7 @@ services:
       - ./redis/config/redis.conf.template:/redis.conf.template
       - ./redis/entrypoint/entrypoint.sh:/entrypoint.sh
 
+  # Service pour la création de la base de données InfluxDB
   influxdb:
     build: ./influxdb
     container_name: influxdb_sensors_activity
@@ -81,6 +87,7 @@ services:
       DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET}
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
 
+  # Service pour exécuter les scripts de génération de données et insertion dans les bdd correspondantes
   python:
     build:
       context: ./python-dev
@@ -95,6 +102,8 @@ services:
     tty: true
 
   # 2ème partie : création des backups 
+
+  # Création du backup sous SQL
   postgres-backup:
     image: postgres:16
     env_file:
@@ -108,6 +117,7 @@ services:
       PGPASSWORD: postgres
     entrypoint: ["bash", "./backup.sh"]
 
+  # Création du backup sous Redis
   redis-backup:
     image: redis:7
     env_file:
@@ -120,6 +130,7 @@ services:
 
     command: ["bash", "../backup.sh"]
 
+  # Création du backup sous InfluxDB
   influx-backup:
     image: influxdb:2.7
     env_file:
@@ -133,6 +144,7 @@ services:
       INFLUX_TOKEN: my-super-token
     entrypoint: ["bash", "./backup.sh"]
 
+  # Création du backup sous Grafana
   grafana-backup:
     image: alpine
     container_name: grafana-backup
@@ -145,6 +157,8 @@ services:
     entrypoint: ["sh", "/backup.sh"]
 
   # 3ème partie : Création des tokens de lecture et d'écriture seulement sur InfluxDB
+
+  # Création des tokens de lecture et d'écriture pour InfluxDB
   influx-init:
     image: influxdb:2.7
     env_file:
@@ -155,6 +169,7 @@ services:
       - ./influxdb/initdb/token_creation.sh:/token_creation.sh
     entrypoint: ["sh", "/token_creation.sh"]
 
+# Création des volumes
 volumes:
   postgres_data:
   redis_data:

@@ -656,10 +656,9 @@ erDiagram
 ```
 
 # Procédures d'administrations 
-Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
 ## PostgreSQL
-
+Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
 | Table                          | SENSOR | SOCIAL_MEDIA_USER | DATA_ANALYST | ANALYSE_PERFORMANCE | MAINTENEUR |
 |--------------------------------|--------|-------------------|--------------|----------------------|-----------|
@@ -685,18 +684,29 @@ Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
 
 ## InfluxDB
+Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
+Expliquer les trois tokens
 
 ## Redis
+Légende : R - Lecture, W - Ecriture, M - Modifier, D - Effacer
 
+Expliquer les quatre utilisateurs
+user ${REDIS_USER_ADMIN} on >${REDIS_PASSWORD_ADMIN} ~* +@all
+user ${REDIS_USER_SM} on >${REDIS_PASSWORD_SM} ~posts:* ~likes:* ~follow:* ~commentary:* +GET +MGET +EXISTS +SET +DEL +INCR +PUBLISH +SUBSCRIBE
+user ${REDIS_USER_SENSOR} on >${REDIS_PASSWORD_SENSOR} ~activity_id:* +GET +MGET +SET +DEL
+user ${REDIS_WORKER} on >${REDIS_PASSWORD_WORKER} allkeys allcommands
 
 # Plan de sauvegarde et de reprise d'activité
 
 ## PostgreSQL
-
+backup créé et rotation
 ## Redis
-
+backup créé et rotation
 ## InfluxDB
+backup créé et rotation
+## Grafana
+backup créé et rotation
 
 # Conclusion
 
